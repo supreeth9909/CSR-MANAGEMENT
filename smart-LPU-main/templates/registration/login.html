@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}CSR Management - Login{% endblock %}
+
+{% block shell_class %}d-block{% endblock %}
+{% block sidebar %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-9 col-lg-5">
+    <div class="glass-strong p-4 p-md-5 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <img src="{% static 'img/lpu-logo.png' %}" alt="CSR Management" style="width:54px;height:54px" />
+        <div>
+          <h1 class="h3 mb-1">CSR Management</h1>
+          <div class="smart-muted">CSR Management – Integrated Academic & Operations Platform</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-strong p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="fw-semibold">Staff & Stall Owner Login</div>
+        <span class="badge badge-soft">CSR Management</span>
+      </div>
+
+      {% if form.errors %}
+      <div class="alert alert-danger">
+        {% if admin_error %}
+        Admins must login through the Admin Login session.
+        {% else %}
+        Invalid username or password.
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input class="form-control" type="text" name="username" autofocus required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input class="form-control" type="password" name="password" required />
+        </div>
+        <input type="hidden" name="next" value="{{ next }}" />
+        <div class="d-grid">
+          <button class="btn btn-smart text-white fw-semibold" type="submit">Sign In</button>
+        </div>
+      </form>
+
+      <div class="d-flex justify-content-center mt-3">
+        <a class="btn btn-outline-smart btn-sm" href="/admin/login/">Admin Login</a>
+      </div>
+
+      <div class="text-center mt-4">
+        <small class="text-muted" style="font-size: 12px; opacity: 0.7;">
+          Created by <strong>supreethreddy</strong>
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

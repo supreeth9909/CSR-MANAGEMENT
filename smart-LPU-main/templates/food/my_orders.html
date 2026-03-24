@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}CampusOne - My Orders{% endblock %}
+
+{% block content %}
+<style>
+  .orders-page {
+    padding: 24px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .header-title h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .header-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-outline {
+    padding: 8px 16px;
+    background: #ffffff;
+    color: #3b82f6;
+    border: 1px solid #dbeafe;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-outline:hover {
+    background: #eff6ff;
+  }
+
+  .btn-cyan {
+    padding: 8px 16px;
+    background: #ffffff;
+    color: #06b6d4;
+    border: 1px solid #cffafe;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cyan:hover {
+    background: #ecfeff;
+  }
+
+  .filter-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+  }
+
+  .filter-group {
+    flex: 1;
+    max-width: 300px;
+  }
+
+  .filter-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+  }
+
+  .filter-group input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1e293b;
+  }
+
+  .btn-primary {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: #2563eb;
+  }
+
+  .data-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .order-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+  }
+
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .order-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .order-meta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .order-items-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .order-items-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+
+  .order-items-table td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #1e293b;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .order-items-table tr:hover td {
+    background: #f9fafb;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .data-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+
+  .data-table td {
+    padding: 14px 16px;
+    font-size: 14px;
+    color: #1e293b;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .data-table tr:hover td {
+    background: #f9fafb;
+  }
+
+  .order-number {
+    font-family: monospace;
+    font-weight: 700;
+    color: #3b82f6;
+  }
+
+  .slot-name {
+    font-weight: 500;
+  }
+
+  .item-name {
+    font-weight: 600;
+  }
+
+  .muted-cell {
+    color: #6b7280;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .status-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-ready {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .status-missed {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-collected {
+    background: #d1fae5;
+    color: #166534;
+  }
+
+  .btn-cancel {
+    padding: 6px 12px;
+    background: #ffffff;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover {
+    background: #fee2e2;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #94a3b8;
+    font-size: 14px;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  @media (max-width: 768px) {
+    .filter-row {
+      flex-direction: column;
+    }
+
+    .filter-group {
+      max-width: 100%;
+    }
+
+    .order-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+</style>
+
+<div class="orders-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-title">
+      <h1>My Orders</h1>
+      <div class="header-subtitle">View and manage your pre-orders.</div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-cyan" data-bs-toggle="modal" data-bs-target="#instructionsModal">Instructions &
+        Penalty</button>
+      <a href="{% url 'food:create_order' %}" class="btn-outline">Back to Order</a>
+      <a href="{% url 'food:food_dashboard' %}" class="btn-outline">Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-card">
+    <form method="get" action="{% url 'food:my_orders' %}" class="filter-row">
+      <div class="filter-group">
+        <label>Date</label>
+        <input type="date" name="date" value="{{ day|date:'Y-m-d' }}" onchange="this.form.submit()">
+      </div>
+      <button type="submit" class="btn-primary">Filter</button>
+    </form>
+  </div>
+
+  <!-- Grouped Orders -->
+  <div id="orders-container">
+    {% include "food/partials/my_orders_list.html" %}
+  </div>
+</div>
+
+<!-- Instructions Modal -->
+<div class="modal fade" id="instructionsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Food Pre-Order Instructions & Penalty Rules</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <h6 class="fw-bold text-primary">How to Order:</h6>
+        <ol>
+          <li>Select your break time slot</li>
+          <li>Add items from one stall only</li>
+          <li>Place order before break slot starts</li>
+          <li>Collect food during break time</li>
+          <li>Payment at stall during pickup</li>
+        </ol>
+
+        <h6 class="fw-bold text-danger mt-4">Penalty for Missed Orders:</h6>
+        <table class="table table-sm table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Missed</th>
+              <th>Penalty</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1st</td>
+              <td>Warning</td>
+            </tr>
+            <tr>
+              <td>2nd</td>
+              <td>1-day ban</td>
+            </tr>
+            <tr>
+              <td>3rd</td>
+              <td>3-day ban</td>
+            </tr>
+            <tr class="table-danger">
+              <td>4+</td>
+              <td>1-week ban</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Poll for updates every 5 seconds
+    setInterval(function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const date = urlParams.get('date') || '';
+
+      fetch(`/food/my-orders/updates/?date=${date}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.ok) {
+            const container = document.getElementById('orders-container');
+            if (container) {
+              // Only update if content changed significantly (simple length check optimization)
+              // Ideally compare hash, but raw replacement is fine
+              if (container.innerHTML.length !== data.html.length || container.innerText.trim() !== stripHtml(data.html).trim()) {
+                container.innerHTML = data.html;
+              }
+            }
+          }
+        })
+        .catch(console.error);
+    }, 5000);
+
+    function stripHtml(html) {
+      let tmp = document.createElement("DIV");
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || "";
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,1056 @@
+{% extends 'base.html' %}
+{% block title %}CampusOne - {{ session.course.code }} Attendance{% endblock %}
+
+{% block content %}
+<style>
+  .session-container {
+    padding: 24px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+
+  .back-btn:hover {
+    background: #e2e8f0;
+  }
+
+  .session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .session-title h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .session-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  .btn-close-session {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #ffffff;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .session-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  /* Camera Card */
+  .camera-card {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .camera-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 16px 0;
+  }
+
+  .mode-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mode-btn.active {
+    background: #60a5fa;
+    color: #ffffff;
+    border-color: #60a5fa;
+    box-shadow: 0 2px 4px rgba(96, 165, 250, 0.3);
+  }
+
+  .camera-feed {
+    background: #64748b;
+    border-radius: 12px;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .camera-feed video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .camera-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+  }
+
+  .camera-icon {
+    width: 48px;
+    height: 48px;
+    opacity: 0.5;
+  }
+
+  .camera-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .camera-controls button {
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .camera-controls button.primary {
+    background: #60a5fa;
+    color: #ffffff;
+    border-color: #60a5fa;
+  }
+
+  .camera-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .camera-status {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 8px;
+    min-height: 16px;
+  }
+
+  .camera-status.success {
+    color: #16a34a;
+  }
+
+  .upload-section {
+    margin-top: 8px;
+  }
+
+  .upload-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #374151;
+    font-weight: 500;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+
+  .upload-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .file-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #ffffff;
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .btn-upload {
+    width: 100%;
+    padding: 10px;
+    background: #60a5fa;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(96, 165, 250, 0.3);
+  }
+
+  .camera-tip {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+
+  /* Manual Attendance Card */
+  .attendance-card {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .attendance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .attendance-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .stats-badges {
+    display: flex;
+    gap: 8px;
+  }
+
+  .stat-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .stat-badge.present {
+    background: #f0fdf4;
+    color: #16a34a;
+  }
+
+  .stat-badge.absent {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+
+  .attendance-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .attendance-table th {
+    text-align: left;
+    padding: 12px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .attendance-table td {
+    padding: 12px 8px;
+    font-size: 14px;
+    color: #374151;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+
+  .attendance-table tr:hover td {
+    background: #f1f5f9;
+  }
+
+  .checkbox-cell {
+    width: 40px;
+    text-align: center;
+  }
+
+  .checkbox-cell input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+  }
+
+  .roll-cell {
+    width: 60px;
+    font-weight: 500;
+    color: #1e293b;
+  }
+
+  .name-cell {
+    flex: 1;
+  }
+
+  .status-cell {
+    width: 100px;
+    text-align: right;
+  }
+
+  .toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .toggle-switch.present {
+    background: #dbeafe;
+    color: #3b82f6;
+  }
+
+  .toggle-switch.absent {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  .toggle-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .attendance-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .attendance-actions button {
+    padding: 6px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .attendance-actions button:hover {
+    background: #f1f5f9;
+  }
+
+  .submit-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+
+  .btn-submit {
+    padding: 10px 24px;
+    background: #60a5fa;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(96, 165, 250, 0.3);
+  }
+
+  .btn-submit:hover {
+    background: #3b82f6;
+  }
+
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  .modal-content {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-header {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 16px 0;
+  }
+
+  .modal-body {
+    margin-bottom: 24px;
+  }
+
+  .absentees-summary {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 12px;
+  }
+
+  .absentees-list {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 12px;
+    max-height: 150px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+
+  .absentees-list-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 8px;
+  }
+
+  .absentee-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+  }
+
+  .confirm-input-group {
+    margin-top: 16px;
+  }
+
+  .confirm-input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+
+  .confirm-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .confirm-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+
+  .modal-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .modal-btn-secondary {
+    background: #ffffff;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+  }
+
+  .modal-btn-secondary:hover {
+    background: #f1f5f9;
+  }
+
+  .modal-btn-primary {
+    background: #60a5fa;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 2px 4px rgba(96, 165, 250, 0.3);
+  }
+
+  .modal-btn-primary:hover:not(:disabled) {
+    background: #3b82f6;
+  }
+
+  .modal-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 900px) {
+    .session-content {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="session-container">
+  <a href="{% url 'attendance_home' %}" class="back-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+    Back
+  </a>
+
+  <div class="session-header">
+    <div class="session-title">
+      <h1>{{ session.course.code }} - {{ session.course.name }}</h1>
+      <div class="session-subtitle">
+        {{ session.session_date|date:"M d, Y" }}
+        {% if session.time_slot %} · {{ session.time_slot }}{% endif %}
+      </div>
+    </div>
+    <a href="{% url 'attendance_home' %}" class="btn-close-session">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+      End Session
+    </a>
+  </div>
+
+  <div class="session-content">
+    {% if not student_rows.0.student.face_samples.exists %}
+    <div class="alert alert-warning mb-4 d-flex align-items-center gap-3">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+      <div>
+        <strong>AI Marking Data Required:</strong> Face recognition needs at least 5 photos per student to work.
+        Currently, no face data is detected for this course's students.
+        <a href="{% url 'manage_face_samples' %}" class="alert-link">Manage Face Samples</a>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="camera-card">
+      <h3 class="camera-title">Smart Camera Attendance</h3>
+
+      <div class="mode-toggle">
+        <button type="button" class="mode-btn active" id="snapshotMode">Snapshot Mode</button>
+        <button type="button" class="mode-btn" id="liveMode">Live Mode</button>
+      </div>
+
+      <div class="camera-feed" id="cameraFeed">
+        <div class="camera-placeholder" id="cameraPlaceholder">
+          <svg class="camera-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="6" width="18" height="12" rx="2"></rect>
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M8 6L9 4H15L16 6"></path>
+          </svg>
+          <span>Camera is off</span>
+        </div>
+        <video id="videoElement" style="display: none;" autoplay playsinline></video>
+        <canvas id="liveCanvas" style="display: none;"></canvas>
+      </div>
+
+      <div class="camera-status" id="cameraStatus"></div>
+
+      <div class="camera-controls">
+        <button type="button" class="primary" id="startCamera">Start Camera</button>
+        <button type="button" id="captureBtn" disabled>Capture</button>
+        <button type="button" id="stopBtn" disabled>Stop</button>
+      </div>
+
+      <!-- Live Mode Controls -->
+      <div id="liveControls" style="display: none; margin-bottom: 16px;">
+        <button type="button" class="btn-upload" id="startLiveBtn" disabled>Start Live Detection</button>
+        <button type="button" class="btn-upload" id="stopLiveBtn" style="display: none; background: #ef4444;">Stop Live
+          Detection</button>
+      </div>
+
+      <!-- Snapshot Mode Upload -->
+      <div class="upload-section" id="snapshotControls">
+        <form method="post" enctype="multipart/form-data"
+          action="{% url 'mark_attendance_by_photo' session_id=session.id %}">
+          {% csrf_token %}
+          <div class="upload-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            Upload Photo from PC
+          </div>
+          <div class="upload-input-wrapper">
+            <input type="file" name="photo" accept="image/*" class="file-input" id="photoInput"
+              onchange="updateFileName(this)">
+          </div>
+          <button type="submit" class="btn-upload">Upload Photo + Auto Mark</button>
+        </form>
+      </div>
+
+      <div class="camera-tip">
+        Tip: For better results, upload 6-10 Face Data photos per student in Manage Data.
+      </div>
+    </div>
+
+    <!-- Manual Attendance -->
+    <div class="attendance-card">
+      <div class="attendance-header">
+        <h3 class="attendance-title">Manual Attendance</h3>
+        <div class="stats-badges">
+          <span class="stat-badge present" id="presentCount">0 Present</span>
+          <span class="stat-badge absent" id="absentCount">0 Absent</span>
+        </div>
+      </div>
+
+      <div class="attendance-actions">
+        <button type="button" onclick="markAllPresent()">Present All</button>
+        <button type="button" onclick="markAllAbsent()">Absent All</button>
+        <button type="button" onclick="markRemainingAbsent()">Absent Remaining</button>
+      </div>
+
+      <form method="post" action="{% url 'mark_attendance' session_id=session.id %}" id="attendanceForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="submit_manual">
+
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th class="checkbox-cell"></th>
+              <th class="roll-cell">Registration Number</th>
+              <th class="name-cell">Name</th>
+              <th class="status-cell">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in student_rows %}
+            <tr data-student-id="{{ row.student.id }}">
+              <td class="checkbox-cell">
+                <input type="checkbox" name="present" value="{{ row.student.id }}" {% if row.status=='present'
+                  %}checked{% endif %} onchange="updateStudentStatus(this)">
+              </td>
+              <td class="roll-cell">{{ row.student.registration_number }}</td>
+              <td class="name-cell">{{ row.student.full_name }}</td>
+              <td class="status-cell">
+                <span class="toggle-switch {% if row.status == 'present' %}present{% else %}absent{% endif %}">
+                  <span class="toggle-dot"></span>
+                  {% if row.status == 'present' %}Present{% else %}Absent{% endif %}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="submit-section">
+          <button type="button" class="btn-submit" onclick="openConfirmModal()">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-content">
+    <h3 class="modal-header">Confirm Attendance</h3>
+    <div class="modal-body">
+      <div class="absentees-summary" id="absenteesSummary"></div>
+      <div class="absentees-list" id="absenteesList">
+        <div class="absentees-list-header">
+          <span>Registration Number</span>
+          <span>Name</span>
+        </div>
+      </div>
+      <div class="confirm-input-group">
+        <label for="presentConfirm">Type total presentees (<span id="presentHint" class="fw-bold">0</span>) to
+          confirm</label>
+        <input type="number" class="confirm-input" id="presentConfirm" placeholder="Enter number here">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="modal-btn modal-btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+      <button type="button" class="modal-btn modal-btn-primary" id="finalSubmitBtn" disabled
+        onclick="submitAttendance()">Submit and Send Mail</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // File input display
+  function updateFileName(input) {
+    const fileName = input.files[0]?.name || 'No file chosen';
+  }
+
+  // Update student status visual
+  function updateStudentStatus(checkbox) {
+    const row = checkbox.closest('tr');
+    const statusCell = row.querySelector('.status-cell .toggle-switch');
+
+    if (checkbox.checked) {
+      statusCell.classList.remove('absent');
+      statusCell.classList.add('present');
+      statusCell.innerHTML = '<span class="toggle-dot"></span>Present';
+    } else {
+      statusCell.classList.remove('present');
+      statusCell.classList.add('absent');
+      statusCell.innerHTML = '<span class="toggle-dot"></span>Absent';
+    }
+
+    updateCounts();
+  }
+
+  // Update present/absent counts
+  function updateCounts() {
+    const checkboxes = document.querySelectorAll('input[name="present"]');
+    const present = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const absent = checkboxes.length - present;
+
+    document.getElementById('presentCount').textContent = present + ' Present';
+    document.getElementById('absentCount').textContent = absent + ' Absent';
+  }
+
+  // Mark all present
+  function markAllPresent() {
+    document.querySelectorAll('input[name="present"]').forEach(cb => {
+      cb.checked = true;
+      updateStudentStatus(cb);
+    });
+  }
+
+  // Mark all absent
+  function markAllAbsent() {
+    document.querySelectorAll('input[name="present"]').forEach(cb => {
+      cb.checked = false;
+      updateStudentStatus(cb);
+    });
+  }
+
+  // Mark remaining absent
+  function markRemainingAbsent() {
+    document.querySelectorAll('input[name="present"]').forEach(cb => {
+      if (!cb.checked) {
+        updateStudentStatus(cb);
+      }
+    });
+    const form = document.getElementById('attendanceForm');
+    const actionInput = form.querySelector('input[name="action"]');
+    actionInput.value = 'mark_remaining_absent';
+    form.submit();
+  }
+
+  // Initialize counts
+  updateCounts();
+
+  // Modal functions
+  let expectedPresentCount = 0;
+
+  function openConfirmModal() {
+    const rows = document.querySelectorAll('.attendance-table tbody tr');
+    const absentees = [];
+    let presentCount = 0;
+
+    rows.forEach(row => {
+      const checkbox = row.querySelector('input[type="checkbox"]');
+      const roll = row.querySelector('.roll-cell').textContent;
+      const name = row.querySelector('.name-cell').textContent;
+
+      if (checkbox.checked) {
+        presentCount++;
+      } else {
+        absentees.push({ roll, name });
+      }
+    });
+
+    expectedPresentCount = presentCount;
+
+    // Update summary and hint
+    const summaryText = `Total students: ${rows.length} | Present: ${presentCount} | Absent: ${absentees.length}`;
+    document.getElementById('absenteesSummary').textContent = summaryText;
+    document.getElementById('presentHint').textContent = presentCount;
+
+    // Update absentees list
+    const listContainer = document.getElementById('absenteesList');
+    listContainer.innerHTML = `
+      <div class="absentees-list-header">
+        <span>Roll No</span>
+        <span>Name</span>
+      </div>
+    `;
+
+    if (absentees.length === 0) {
+      listContainer.innerHTML += '<div style="text-align: center; color: #94a3b8; padding: 12px;">No absentees. Everyone is present.</div>';
+    } else {
+      absentees.forEach(a => {
+        listContainer.innerHTML += `
+          <div class="absentee-row">
+            <span>${a.roll}</span>
+            <span>${a.name}</span>
+          </div>
+        `;
+      });
+    }
+
+    // Reset input and button
+    document.getElementById('presentConfirm').value = '';
+    document.getElementById('finalSubmitBtn').disabled = true;
+
+    // Show modal
+    document.getElementById('confirmModal').classList.add('show');
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirmModal').classList.remove('show');
+  }
+
+  function submitAttendance() {
+    document.getElementById('attendanceForm').submit();
+  }
+
+  // Validate present count input
+  document.getElementById('presentConfirm').addEventListener('input', function () {
+    const value = parseInt(this.value, 10);
+    document.getElementById('finalSubmitBtn').disabled = (value !== expectedPresentCount);
+  });
+
+  // Mode switching
+  let currentMode = 'snapshot';
+  const snapshotModeBtn = document.getElementById('snapshotMode');
+  const liveModeBtn = document.getElementById('liveMode');
+  const snapshotControls = document.getElementById('snapshotControls');
+  const liveControls = document.getElementById('liveControls');
+
+  snapshotModeBtn.addEventListener('click', () => setMode('snapshot'));
+  liveModeBtn.addEventListener('click', () => setMode('live'));
+
+  function setMode(mode) {
+    currentMode = mode;
+
+    if (mode === 'snapshot') {
+      snapshotModeBtn.classList.add('active');
+      liveModeBtn.classList.remove('active');
+      snapshotControls.style.display = 'block';
+      liveControls.style.display = 'none';
+      document.getElementById('captureBtn').style.display = 'inline-block';
+    } else {
+      liveModeBtn.classList.add('active');
+      snapshotModeBtn.classList.remove('active');
+      snapshotControls.style.display = 'none';
+      liveControls.style.display = 'block';
+      document.getElementById('captureBtn').style.display = 'none';
+    }
+
+    // Update button states based on camera
+    updateCameraButtonStates();
+  }
+
+  // Camera functionality
+  let stream = null;
+  let liveInterval = null;
+  const video = document.getElementById('videoElement');
+  const cameraFeed = document.getElementById('cameraFeed');
+  const placeholder = document.getElementById('cameraPlaceholder');
+  const startBtn = document.getElementById('startCamera');
+  const stopBtn = document.getElementById('stopBtn');
+  const captureBtn = document.getElementById('captureBtn');
+  const cameraStatus = document.getElementById('cameraStatus');
+  const startLiveBtn = document.getElementById('startLiveBtn');
+  const stopLiveBtn = document.getElementById('stopLiveBtn');
+
+  function updateCameraButtonStates() {
+    const hasStream = !!stream;
+
+    if (currentMode === 'snapshot') {
+      captureBtn.disabled = !hasStream;
+      startLiveBtn.disabled = true;
+    } else {
+      captureBtn.disabled = true;
+      startLiveBtn.disabled = !hasStream;
+    }
+
+    stopBtn.disabled = !hasStream;
+    startBtn.disabled = hasStream;
+  }
+
+  startBtn.addEventListener('click', async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      video.style.display = 'block';
+      placeholder.style.display = 'none';
+      video.play();
+
+      updateCameraButtonStates();
+      cameraStatus.textContent = '';
+    } catch (err) {
+      cameraStatus.textContent = 'Camera error: ' + err.message;
+    }
+  });
+
+  stopBtn.addEventListener('click', () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+
+    // Stop live detection if running
+    if (liveInterval) {
+      clearInterval(liveInterval);
+      liveInterval = null;
+      startLiveBtn.style.display = 'inline-block';
+      stopLiveBtn.style.display = 'none';
+    }
+
+    video.style.display = 'none';
+    placeholder.style.display = 'flex';
+    cameraStatus.textContent = '';
+
+    updateCameraButtonStates();
+  });
+
+  captureBtn.addEventListener('click', () => {
+    if (!stream) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    canvas.toBlob(blob => {
+      const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      document.getElementById('photoInput').files = dt.files;
+
+      // Show inline message instead of alert
+      cameraStatus.textContent = 'Photo captured! Click "Upload Photo + Auto Mark" to submit.';
+      cameraStatus.classList.add('success');
+
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        cameraStatus.textContent = '';
+        cameraStatus.classList.remove('success');
+      }, 3000);
+    }, 'image/jpeg');
+  });
+
+  // Live mode detection
+  startLiveBtn.addEventListener('click', () => {
+    startLiveBtn.style.display = 'none';
+    stopLiveBtn.style.display = 'inline-block';
+
+    // Simulate live detection
+    cameraStatus.textContent = 'Live detection started...';
+
+    // Send frames to server every second
+    liveInterval = setInterval(() => {
+      if (!stream || !video.videoWidth) return;
+
+      const canvas = document.getElementById('liveCanvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+
+      // Convert to base64 and send
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+      fetch("{% url 'live_attendance_frame' session_id=session.id %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ image: dataUrl })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.ok) {
+            cameraStatus.textContent = `Faces: ${data.faces_detected} | Marked: ${data.newly_marked}`;
+            // Refresh the page to show updated attendance
+            if (data.newly_marked > 0) {
+              window.location.reload();
+            }
+          }
+        })
+        .catch(() => {
+          // Silent fail - don't spam errors
+        });
+    }, 1000);
+  });
+
+  stopLiveBtn.addEventListener('click', () => {
+    if (liveInterval) {
+      clearInterval(liveInterval);
+      liveInterval = null;
+    }
+    startLiveBtn.style.display = 'inline-block';
+    stopLiveBtn.style.display = 'none';
+    cameraStatus.textContent = 'Live detection stopped';
+  });
+
+  // Initialize button states
+  updateCameraButtonStates();
+</script>
+{% endblock %}

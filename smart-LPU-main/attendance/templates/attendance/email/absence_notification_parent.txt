@@ -1,0 +1,26 @@
+ABSENCE NOTIFICATION - CampusOne
+====================================
+
+Dear Parent/Guardian,
+
+Ward Information:
+----------------
+Student Name: {{ student_name }}
+Registration Number: {{ roll_number }}
+Course: {{ course_name }}
+Date: {{ date }}
+Class Time Slot: {{ time_slot }}
+
+This is to inform you that your ward {{ student_name }} (Registration Number: {{ roll_number }}) was marked ABSENT for the {{ course_name }} class on {{ date }} during {{ time_slot }}.
+
+Important Notes:
+- Regular attendance is crucial for academic success
+
+Contact Information:
+--------------------
+Email: support@campusone.edu
+Phone: +91-1824-404404
+Administration Office
+
+This is an automated message from CampusOne.
+Please do not reply to this email.

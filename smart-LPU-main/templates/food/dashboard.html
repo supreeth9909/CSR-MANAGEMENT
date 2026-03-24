@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% block title %}CampusOne - Food Demand Dashboard{% endblock %}
+
+{% block content %}
+<style>
+  .dashboard-page {
+    padding: 24px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  
+  .header-title h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+  
+  .header-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .btn-outline {
+    padding: 8px 16px;
+    background: #ffffff;
+    color: #3b82f6;
+    border: 1px solid #dbeafe;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn-outline:hover {
+    background: #eff6ff;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+  }
+  
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  
+  .stat-value.blue { color: #3b82f6; }
+  .stat-value.green { color: #22c55e; }
+  .stat-value.cyan { color: #06b6d4; }
+  .stat-value.red { color: #ef4444; }
+  
+  .stat-label {
+    font-size: 13px;
+    color: #64748b;
+  }
+  
+  .filter-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+  }
+  
+  .filter-group {
+    flex: 1;
+  }
+  
+  .filter-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+  }
+  
+  .filter-group input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1e293b;
+  }
+  
+  .btn-primary {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn-primary:hover {
+    background: #2563eb;
+  }
+  
+  .auto-refresh-info {
+    text-align: right;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 8px;
+  }
+  
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  
+  .chart-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .chart-header {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  
+  .chart-item {
+    margin-bottom: 12px;
+  }
+  
+  .chart-item-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  
+  .chart-item-name {
+    color: #374151;
+  }
+  
+  .chart-item-value {
+    color: #64748b;
+  }
+  
+  .progress-bar {
+    height: 6px;
+    background: #f1f5f9;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  
+  .stall-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .stall-info {
+    flex: 1;
+  }
+  
+  .stall-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+  }
+  
+  .stall-location {
+    font-size: 12px;
+    color: #94a3b8;
+  }
+  
+  .stall-badge {
+    padding: 4px 10px;
+    background: #dbeafe;
+    color: #3b82f6;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .slot-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .slot-item.peak {
+    background: #cffafe;
+  }
+  
+  .slot-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+  }
+  
+  .slot-badge {
+    padding: 4px 10px;
+    background: #94a3b8;
+    color: #ffffff;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .slot-badge.peak {
+    background: #06b6d4;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #94a3b8;
+    font-size: 14px;
+  }
+  
+  @media (max-width: 900px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .charts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="dashboard-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-title">
+      <h1>Food Demand Dashboard</h1>
+      <div class="header-subtitle">Track demand and peak slots to reduce congestion.</div>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'food:create_order' %}" class="btn-outline">Back to Order</a>
+      <a href="{% url 'food:create_order' %}" class="btn-outline">Place Order</a>
+      <a href="{% url 'food:my_orders' %}" class="btn-outline">Orders</a>
+    </div>
+  </div>
+  
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value blue" id="totalOrders">{{ total_orders|default:0 }}</div>
+      <div class="stat-label">Total Orders</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value green" id="totalQuantity">{{ total_quantity|default:0 }}</div>
+      <div class="stat-label">Items Ordered</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value cyan">{% if peak_slot %}{{ peak_slot.total_qty }}{% else %}0{% endif %}</div>
+      <div class="stat-label">Peak Slot Orders</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value red" id="missedOrders">{{ missed_orders|default:0 }}</div>
+      <div class="stat-label">Missed Orders</div>
+    </div>
+  </div>
+  
+  <!-- Filter -->
+  <div class="filter-card">
+    <form method="get" class="filter-row">
+      <div class="filter-group">
+        <label>Date</label>
+        <input type="date" name="date" value="{{ day|date:'Y-m-d' }}">
+      </div>
+      <button type="submit" class="btn-primary">Refresh</button>
+    </form>
+    <div class="auto-refresh-info">
+      Auto-refreshes every 5 minutes | Last updated: {% now "H:i" %}
+    </div>
+  </div>
+  
+  <!-- Charts -->
+  <div class="charts-grid">
+    <!-- Item Popularity -->
+    <div class="chart-card">
+      <div class="chart-header">Item Popularity</div>
+      {% if by_item %}
+        {% for item in by_item|slice:":10" %}
+          <div class="chart-item">
+            <div class="chart-item-header">
+              <span class="chart-item-name">{{ item.food_item__name }}</span>
+              <span class="chart-item-value">{{ item.total_qty }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: {% widthratio item.total_qty max_qty 100 %}%"></div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">No data available</div>
+      {% endif %}
+    </div>
+    
+    <!-- Stall-wise Demand -->
+    <div class="chart-card">
+      <div class="chart-header">Stall-wise Demand</div>
+      {% if by_stall %}
+        {% for stall in by_stall|slice:":8" %}
+          <div class="stall-item">
+            <div class="stall-info">
+              <div class="stall-name">{{ stall.food_item__stall_name }}</div>
+              <div class="stall-location">{{ stall.food_item__location }}</div>
+            </div>
+            <span class="stall-badge">{{ stall.total_qty }}</span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">No data available</div>
+      {% endif %}
+    </div>
+    
+    <!-- Peak Time Slots -->
+    <div class="chart-card">
+      <div class="chart-header">Peak Time Slots</div>
+      {% if by_slot %}
+        {% for slot in by_slot|slice:":8" %}
+          <div class="slot-item {% if peak_slot and slot.slot__name == peak_slot.slot__name %}peak{% endif %}">
+            <span class="slot-name">{{ slot.slot__name }}</span>
+            <span class="slot-badge {% if peak_slot and slot.slot__name == peak_slot.slot__name %}peak{% endif %}">{{ slot.total_qty }} orders</span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">No data available</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div id="orderToast" class="toast" role="alert">
+    <div class="toast-header bg-success text-white">
+      <strong>New Order!</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body" id="orderToastBody">A new order has been placed.</div>
+  </div>
+</div>
+
+<script>
+  setInterval(() => window.location.reload(), 300000);
+  
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('lastUpdated')?.textContent = 'Last updated: ' + now.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  }
+  setInterval(updateTime, 60000);
+  
+  let lastOrderCount = {{ total_orders|default:0 }};
+  setInterval(() => {
+    fetch(window.location.href, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+      .then(r => r.text())
+      .then(html => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const newCount = parseInt(doc.getElementById('totalOrders')?.textContent || '0');
+        if (newCount > lastOrderCount) {
+          bootstrap.Toast.getOrCreateInstance(document.getElementById('orderToast')).show();
+          document.getElementById('orderToastBody').textContent = (newCount - lastOrderCount) + ' new order(s) placed!';
+          lastOrderCount = newCount;
+          document.getElementById('totalOrders').textContent = newCount;
+        }
+      });
+  }, 30000);
+</script>
+{% endblock %}
